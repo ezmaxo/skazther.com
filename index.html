@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SKAZTHER — Sahil Khan | Cyberpunk Space Portfolio</title>
+  <meta name="description" content="SKAZTHER (Sahil Khan) — premium cyberpunk + space portfolio with animated starfield, nebula, glassmorphism and responsive layout." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-dark:#04050a;
+      --glass-2:rgba(255,255,255,0.04);
+      --neon-1:#7c3aed;    /* purple */
+      --neon-2:#00e6c3;    /* cyan */
+      --neon-3:#ff3cac;    /* magenta */
+      --muted:#b6c7d6;
+      --header-h:72px;
+      --max-w:1200px;
+      --card-radius:16px;
+      --pill-bg: rgba(255,255,255,0.02);
+    }
+
+    /* Reset + base */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;scroll-behavior:smooth}
+    body{
+      font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      color:#e9f3ff;background:var(--bg-dark);-webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* --- Space layers --- */
+    canvas#spaceCanvas{position:fixed;inset:0;z-index:-6;display:block}
+    .nebula{
+      position:fixed;inset:0;z-index:-5;pointer-events:none;
+      background:
+        radial-gradient(ellipse at 10% 20%, rgba(124,58,237,0.12), transparent 8%),
+        radial-gradient(ellipse at 90% 80%, rgba(0,230,195,0.08), transparent 12%),
+        linear-gradient(180deg, rgba(3,6,20,0.6), rgba(2,4,10,0.92));
+      filter:blur(20px);mix-blend-mode:screen;opacity:0.98;transform:translateY(0);
+      transition:transform .3s linear;
+    }
+
+    /* glowing overlays */
+    .glow-overlay{
+      position:fixed;inset:0;z-index:-4;pointer-events:none;background:
+      radial-gradient(circle at 20% 20%, rgba(124,58,237,0.06), transparent 10%),
+      radial-gradient(circle at 80% 80%, rgba(0,230,195,0.04), transparent 12%);
+      filter:blur(40px);mix-blend-mode:screen;opacity:0.9;
+    }
+
+    .wrap{max-width:var(--max-w);margin:0 auto;padding:20px}
+
+    /* --- Section Animation Styles --- */
+    .section {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.2, 1), 
+                  transform 0.8s cubic-bezier(0.2, 0.9, 0.2, 1);
+    }
+    
+    .section.reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* Hero section specific animation */
+    .hero {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .hero.reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* --- Header --- */
+    header{
+      position:fixed;left:0;right:0;top:0;height:var(--header-h);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 6%;z-index:40;
+      background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent);
+      backdrop-filter:blur(8px);border-bottom:1px solid var(--glass-2)
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:52px;height:52px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);box-shadow:0 10px 40px rgba(124,58,237,0.08)}
+    .logo img{width:100%;height:100%;object-fit:cover}
+    .brand h1{font-size:16px;margin:0;font-weight:800;color:var(--neon-1);text-shadow:0 6px 18px rgba(124,58,237,0.12)}
+    .brand p{font-size:12px;color:var(--muted);margin-top:2px}
+
+    /* Hamburger menu styles */
+    .hamburger {
+      display: none;
+      width: 30px;
+      height: 24px;
+      position: relative;
+      transform: rotate(0deg);
+      transition: all 0.3s ease-in-out;
+      cursor: pointer;
+      z-index: 50;
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+    
+    .hamburger span {
+      display: block;
+      position: absolute;
+      height: 3px;
+      width: 100%;
+      background: var(--muted);
+      border-radius: 3px;
+      opacity: 1;
+      left: 0;
+      transform: rotate(0deg);
+      transition: all 0.3s ease-in-out;
+    }
+    
+    .hamburger span:nth-child(1) {
+      top: 0px;
+      transform-origin: left center;
+    }
+    
+    .hamburger span:nth-child(2) {
+      top: 10px;
+      transform-origin: left center;
+    }
+    
+    .hamburger span:nth-child(3) {
+      top: 20px;
+      transform-origin: left center;
+    }
+    
+    .hamburger.open span:nth-child(1) {
+      transform: rotate(45deg);
+      top: -1px;
+      left: 4px;
+      background: var(--neon-2);
+    }
+    
+    .hamburger.open span:nth-child(2) {
+      width: 0%;
+      opacity: 0;
+    }
+    
+    .hamburger.open span:nth-child(3) {
+      transform: rotate(-45deg);
+      top: 21px;
+      left: 4px;
+      background: var(--neon-2);
+    }
+    
+    /* Click animation */
+    .hamburger:active span {
+      transform: scaleY(0.8);
+    }
+    
+    .hamburger.open:active span {
+      transform: scaleY(0.8) rotate(45deg);
+    }
+    
+    .hamburger.open:active span:nth-child(3) {
+      transform: scaleY(0.8) rotate(-45deg);
+    }
+
+    /* Mobile navigation */
+    .mobile-nav {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, rgba(6,6,12,0.98), rgba(2,3,8,0.98));
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 20px;
+      z-index: 45;
+      transform: translateY(-100%);
+      opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1), 
+                  opacity 0.3s ease;
+      pointer-events: none;
+      box-shadow: 0 15px 50px rgba(2,6,23,0.8);
+    }
+    
+    .mobile-nav.show {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .mobile-nav a {
+      display: block;
+      padding: 14px 0;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .mobile-nav a:last-child {
+      border-bottom: none;
+    }
+    
+    .mobile-nav a:hover {
+      color: var(--neon-2);
+      transform: translateX(5px);
+    }
+
+    /* Desktop navigation */
+    .desktop-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .desktop-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.22s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .desktop-nav a:hover {
+      color: white;
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), transparent);
+      transform: translateY(-3px);
+    }
+    
+    .desktop-nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--neon-1), var(--neon-2));
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s ease;
+    }
+    
+    .desktop-nav a:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    main{padding-top:calc(var(--header-h) + 18px)}
+
+    /* --- Hero --- */
+    .hero{display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:center;margin-top:6vh;padding:28px;border-radius:18px}
+    @media(max-width:980px){.hero{grid-template-columns:1fr;gap:18px;padding:22px}}
+
+    .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:var(--card-radius);padding:18px;border:1px solid var(--glass-2);box-shadow:0 10px 60px rgba(6,8,15,0.6);backdrop-filter:blur(10px)}
+    .hero .intro h2{font-family:'Roboto Slab',serif;font-size:28px;margin-bottom:10px;color:#fff;text-shadow:0 8px 30px rgba(124,58,237,0.05)}
+    .muted{color:var(--muted)}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .chip{padding:8px 12px;border-radius:999px;background:transparent;border:1px solid rgba(255,255,255,0.03);font-weight:700;color:#f3f7ff;transition:transform .22s}
+    .chip.reveal{transform:translateY(0);opacity:1}
+    .hero .visual img{width:100%;height:260px;object-fit:cover;border-radius:12px;box-shadow:0 12px 40px rgba(124,58,237,0.06)}
+
+    /* --- Section heads --- */
+    section{margin-top:28px}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
+    .section-head h3{font-size:18px;margin:0;color:var(--neon-2);position:relative}
+    .section-head h3::after{content:'';display:block;height:2px;width:48px;background:linear-gradient(90deg,var(--neon-1),var(--neon-2));border-radius:2px;margin-top:8px;opacity:0;transform:translateY(6px);transition:all .45s}
+    .section.reveal .section-head h3::after{opacity:1;transform:none}
+    .section-sub{color:var(--muted);font-size:14px}
+
+    /* --- Skills grid (demanding skills) --- */
+    .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:12px}
+    .skill-card{
+      position:relative;overflow:hidden;padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.03);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));opacity:0;
+      transform:translateY(26px) rotateX(6deg);transition:transform .45s cubic-bezier(.2,.9,.2,1),box-shadow .35s,opacity .45s;
+      will-change:transform,opacity;
+    }
+
+    /* neon border overlay */
+    .skill-card::after{
+      content:'';position:absolute;inset:0;border-radius:14px;padding:1px;
+      background:linear-gradient(90deg, rgba(124,58,237,0.9), rgba(0,230,195,0.9));
+      -webkit-mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
+      mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
+      pointer-events:none;mix-blend-mode:overlay;opacity:0;transition:opacity .35s;
+    }
+    .skill-card.reveal{opacity:1;transform:none}
+    .skill-card.reveal::after{opacity:0.12}
+
+    .title{font-weight:800;margin-bottom:6px;color:#fff}
+    .desc{color:var(--muted);font-size:14px}
+
+    /* continuous looping micro animations for demanding skills */
+    @keyframes neonFloat {
+      0%{transform:translateY(0) rotateX(6deg)}
+      50%{transform:translateY(-6px) rotateX(6deg)}
+      100%{transform:translateY(0) rotateX(6deg)}
+    }
+    @keyframes neonFlicker {
+      0%{filter:drop-shadow(0 0 6px rgba(124,58,237,0.06))}
+      50%{filter:drop-shadow(0 0 18px rgba(0,230,195,0.08))}
+      100%{filter:drop-shadow(0 0 6px rgba(124,58,237,0.06))}
+    }
+    .skill-card.looping { animation: neonFloat 6s ease-in-out infinite, neonFlicker 4.6s linear infinite; }
+
+    /* shimmer sweep on hover */
+    .skill-anim{
+      position:absolute;left:-40%;top:0;height:100%;width:40%;
+      background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+      transform:skewX(-20deg) translateX(-120%);transition:transform .9s cubic-bezier(.2,.9,.2,1);opacity:0;
+    }
+    .skill-card:hover .skill-anim{transform:skewX(-20deg) translateX(220%);opacity:1}
+    .skill-glow{position:absolute;right:-30%;top:-40%;width:200%;height:200%;background:
+      radial-gradient(circle at 20% 20%, rgba(124,58,237,0.12), transparent 8%),
+      radial-gradient(circle at 80% 80%, rgba(0,230,195,0.10), transparent 8%);
+      filter:blur(28px);opacity:0;transition:opacity .4s}
+    .skill-card:hover .skill-glow{opacity:0.9}
+    .skill-card:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 28px 70px rgba(124,58,237,0.12)}
+
+    /* small animated icon pulse (used if needed inside card) */
+    .pulse{display:inline-block;padding:8px;border-radius:999px;background:linear-gradient(90deg,var(--neon-1),var(--neon-2));box-shadow:0 8px 30px rgba(124,58,237,0.12)}
+
+    /* --- Micro work pills --- */
+    .micro-pills{
+      display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;
+    }
+    .pill{
+      --scale:1;
+      display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;
+      background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.06);
+      color:#fff;font-weight:600;font-size:14px;cursor:default;
+      box-shadow:0 8px 24px rgba(124,58,237,0.04), inset 0 -6px 18px rgba(0,0,0,0.12);
+      transition:transform .28s ease,box-shadow .28s ease,opacity .28s;
+      transform:scale(var(--scale));
+    }
+    .pill::before{
+      content:'';display:inline-block;width:10px;height:10px;border-radius:50%;
+      background:linear-gradient(90deg,var(--neon-1),var(--neon-2));
+      box-shadow:0 6px 18px rgba(124,58,237,0.18);
+    }
+    .pill:hover{transform:scale(1.04);box-shadow:0 18px 60px rgba(124,58,237,0.14)}
+    /* tiny shine animation on pills */
+    @keyframes pillShine {0%{opacity:.95;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}100%{opacity:.95;transform:translateY(0)}}
+    .pill.shine{animation:pillShine 4.6s ease-in-out infinite}
+
+    /* --- Projects, Resume, Socials --- */
+    .projects-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+    .project{display:flex;gap:14px;align-items:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006));opacity:0;transform:translateX(-18px)}
+    .project img{width:140px;height:90px;object-fit:cover;border-radius:8px}
+    .resume-grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
+    @media(max-width:900px){.resume-grid{grid-template-columns:1fr}}
+    .counter{font-weight:800;font-size:28px;color:var(--neon-1)}
+    .socials{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .social-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:linear-gradient(90deg,var(--neon-1),var(--neon-3));color:white;text-decoration:none;font-weight:700;box-shadow:0 12px 40px rgba(124,58,237,0.12);transform:translateY(0);transition:transform .18s}
+    .social-btn:hover{transform:translateY(-6px);box-shadow:0 18px 60px rgba(124,58,237,0.16)}
+
+    /* reveal class */
+    .reveal{opacity:1;transform:none;transition:all .6s cubic-bezier(.2,.9,.2,1)}
+
+    /* responsive */
+    @media(max-width:720px){
+      .desktop-nav{display:none}
+      .hamburger{display:flex}
+      .logo{width:46px;height:46px}
+      .hero .visual img{height:200px}
+      .skill-card{padding:14px}
+    }
+
+    /* extra micro animations */
+    .floaty{animation:floaty 6s ease-in-out infinite}
+    @keyframes floaty{0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+    .flicker{animation:flicker 3s linear infinite}
+    @keyframes flicker{0%{opacity:1}50%{opacity:.85}100%{opacity:1}}
+  </style>
+</head>
+<body>
+  <!-- STARFIELD CANVAS -->
+  <canvas id="spaceCanvas"></canvas>
+  <div class="nebula"></div>
+  <div class="glow-overlay"></div>
+
+  <header>
+    <div class="brand">
+      <div class="logo"><img src="https://iili.io/FL7yAzX.jpg" alt="SKAZTHER logo"></div>
+      <div>
+        <h1 class="floaty">SKAZTHER</h1>
+        <p class="muted">Sahil Khan — Micro Worker • Creative Freelancer</p>
+      </div>
+    </div>
+
+    <nav class="desktop-nav" aria-label="Primary navigation">
+      <a href="#about" class="nav-link">About</a>
+      <a href="#skills" class="nav-link">Skills</a>
+      <a href="#projects" class="nav-link">Projects</a>
+      <a href="#resume" class="nav-link">Resume</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </nav>
+
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#projects">Projects</a>
+    <a href="#resume">Resume</a>
+    <a href="#contact">Contact</a>
+  </div>
+
+  <main class="wrap">
+    <section class="hero" id="hero">
+      <div class="glass intro" id="intro">
+        <h2 class="flicker">Cyberpunk creative services — spacegrade design & rapid delivery</h2>
+        <p class="muted">I'm Sahil Khan (SKAZTHER). I craft thumbnails, logos, intros, photo edits and compact landing pages with a premium cyberpunk + space vibe — optimized for creators and small businesses.</p>
+
+        <div class="chips" id="chips">
+          <div class="chip">Logo Design</div>
+          <div class="chip">Thumbnail Creation</div>
+          <div class="chip">Intro & Outro</div>
+          <div class="chip">Background Removal</div>
+          <div class="chip">Photo Editing</div>
+          <div class="chip">Video Editing</div>
+          <div class="chip">Audio Cleaning</div>
+          <div class="chip">Subtitling</div>
+          <div class="chip">HTML & CSS</div>
+          <div class="chip">Content Writing</div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <a class="social-btn" href="mailto:ezmax0@gmail.com">Email</a>
+          <a class="social-btn" href="#projects">View Work</a>
+        </div>
+      </div>
+
+      <aside class="glass visual" id="visual">
+        <img src="https://iili.io/FLY9lCg.jpg" alt="Featured work">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div>
+            <div style="font-weight:800">Available for</div>
+            <div class="muted">Short tasks, branding, social kits</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:800">Location</div>
+            <div class="muted">India</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section glass" data-reveal>
+      <div class="section-head">
+        <h3>About Me</h3>
+        <div class="section-sub muted">Professional summary & approach</div>
+      </div>
+      <p class="muted" style="margin-top:12px">I'm a solutions-focused creative who delivers production-ready assets with speed and consistent quality. My practice centers on clarity of message — I design visuals to help viewers understand and act quickly. Whether building a recognizable logo, optimizing a thumbnail for clicks, or cleaning audio for voiceover, I apply a repeatable process that balances aesthetics and performance.</p>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" class="section" data-reveal>
+      <div class="section-head">
+        <h3>Skills</h3>
+        <div class="section-sub muted">Capabilities & service detail</div>
+      </div>
+
+      <!-- demanding skills: continuous animated -->
+      <div class="skills-grid" id="skillsGrid" style="margin-top:12px">
+        <div class="skill-card looping" data-index="0">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Logo Design</div>
+          <div class="desc muted">Vector-first brand marks, responsive lockups, and export-ready assets with usage notes.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="1">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Poster Design</div>
+          <div class="desc muted">High-impact poster layouts for print and digital campaigns.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="2">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Banner Design</div>
+          <div class="desc muted">Web and social banners optimized for clarity and conversion.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="3">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Thumbnail Design</div>
+          <div class="desc muted">Click-focused thumbnail compositions that improve CTR.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="4">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">HTML & CSS (Landing pages)</div>
+          <div class="desc muted">Responsive landing pages and small web builds with clean markup.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="5">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Simple Video Editing</div>
+          <div class="desc muted">Trimming, merging, transitions, subtitles and quick color tweaks.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="6">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Intro & Outro Motion</div>
+          <div class="desc muted">Short animated stings and logo reveals with sound design.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="7">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Photo Editing & Retouch</div>
+          <div class="desc muted">Batch processing, masking, and color correction for product images.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="8">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Background Removal</div>
+          <div class="desc muted">Precise background masking for clean compositing.</div>
+        </div>
+
+        <div class="skill-card looping" data-index="9">
+          <div class="skill-glow"></div><div class="skill-anim"></div>
+          <div class="title">Social Media Post Design</div>
+          <div class="desc muted">Post templates, carousels and campaign visuals for platforms.</div>
+        </div>
+      </div>
+
+      <!-- micro work pills (shiny glow buttons) -->
+      <div class="micro-pills" id="microPills" aria-hidden="false">
+        <!-- each pill below corresponds to a micro work skill (kept exactly as your list) -->
+        <span class="pill shine">Logo design</span>
+        <span class="pill shine">Thumbnail creation</span>
+        <span class="pill shine">Intro & outro making</span>
+        <span class="pill shine">Background removal</span>
+        <span class="pill shine">Photo editing</span>
+        <span class="pill shine">Color correction</span>
+        <span class="pill shine">Image retouching</span>
+        <span class="pill shine">Social media post design</span>
+        <span class="pill shine">Flyer/banner design</span>
+        <span class="pill shine">Video trimming</span>
+        <span class="pill shine">Video merging</span>
+        <span class="pill shine">Adding transitions in videos</span>
+        <span class="pill shine">Audio cleaning</span>
+        <span class="pill shine">Subtitling / captions</span>
+        <span class="pill shine">Voiceover recording</span>
+        <span class="pill shine">Basic animation</span>
+        <span class="pill shine">Text animation</span>
+        <span class="pill shine">Content writing</span>
+        <span class="pill shine">Blog / article writing</span>
+        <span class="pill shine">Data entry</span>
+        <span class="pill shine">Spreadsheet formatting</span>
+        <span class="pill shine">Web page coding (HTML, CSS)</span>
+        <span class="pill shine">Landing page creation</span>
+        <span class="pill shine">Basic SEO tasks</span>
+        <span class="pill shine">Social media management</span>
+        <span class="pill shine">Email template design</span>
+        <span class="pill shine">Presentation design</span>
+        <span class="pill shine">Infographic design</span>
+        <span class="pill shine">Resume / CV formatting</span>
+        <span class="pill shine">Proofreading & editing</span>
+        <span class="pill shine">Copywriting</span>
+        <span class="pill shine">Product description writing</span>
+        <span class="pill shine">Keyword research</span>
+        <span class="pill shine">Customer support chats</span>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="section" data-reveal>
+      <div class="section-head">
+        <h3>Projects</h3>
+        <div class="section-sub muted">Curated list — select case highlights</div>
+      </div>
+
+      <div class="projects-list" id="projectsList" style="margin-top:12px">
+        <div class="project" data-index="0">
+          <img src="https://iili.io/FL7yAzX.jpg" alt="Project logo">
+          <div>
+            <h4>Brand Mark & Visual ID</h4>
+            <p class="muted">A compact brand mark built for multi-platform use, delivered with SVG, PNG and usage guidance.</p>
+          </div>
+        </div>
+
+        <div class="project" data-index="1">
+          <img src="https://iili.io/FLY9lCg.jpg" alt="Thumbnail">
+          <div>
+            <h4>Thumbnail Series — Creator Channel</h4>
+            <p class="muted">Bespoke thumbnail set tuned for higher CTR with face-focused layouts and bold headlines.</p>
+          </div>
+        </div>
+
+        <div class="project" data-index="2">
+          <img src="https://iili.io/FLYK3Pt.jpg" alt="Intro">
+          <div>
+            <h4>Animated Intro/Outro Pack</h4>
+            <p class="muted">Short stings with sound design and quick logo reveals optimized for YouTube exports.</p>
+          </div>
+        </div>
+
+        <div class="project" data-index="3">
+          <img src="https://iili.io/FLYB5lt.jpg" alt="Banner">
+          <div>
+            <h4>Banner & Social Kit</h4>
+            <p class="muted">High-impact banners and repurposed social variants for consistent campaign presence.</p>
+          </div>
+        </div>
+
+        <div class="project" data-index="4">
+          <img src="https://iili.io/FLYnCZv.jpg" alt="Photo edit">
+          <div>
+            <h4>Product Photo Retouch</h4>
+            <p class="muted">Batch retouch and masking for e-commerce listing-ready images.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESUME -->
+    <section id="resume" class="section glass" data-reveal>
+      <div class="section-head">
+        <h3>Resume</h3>
+        <div class="section-sub muted">Experience, tools, and offering</div>
+      </div>
+
+      <div class="resume-grid" style="margin-top:12px">
+        <div class="glass">
+          <h4>Sahil Khan — Micro Worker & Digital Freelancer</h4>
+          <p class="muted">Email: ezmax0@gmail.com • Location: India</p>
+          <div style="height:10px"></div>
+          <h5>Experience</h5>
+          <p class="muted">Freelance Micro Worker — Self-employed (Jan 2022 — Present). Delivering fast micro-tasks across visual design and short-form media. Focus on quality, iterations, and measurable performance improvements.</p>
+
+          <div style="height:10px"></div>
+          <h5>Highlights</h5>
+          <ul class="muted">
+            <li>500+ micro-tasks completed across logos, thumbnails, and edits.</li>
+            <li>Streamlined thumbnail workflows reducing turnaround to under 24 hours for repeat clients.</li>
+            <li>Consistent improvements in engagement metrics via design optimizations.</li>
+          </ul>
+        </div>
+
+        <aside class="glass" style="padding:16px">
+          <h5>Tools & Services</h5>
+          <p class="muted">Photoshop, Illustrator, Premiere Pro, After Effects (basic), Audacity, Figma, VS Code.</p>
+          <div style="height:12px"></div>
+          <div style="display:flex;gap:12px;justify-content:space-between;align-items:center">
+            <div>
+              <div class="counter" data-target="500">0</div>
+              <div class="muted small">Tasks completed</div>
+            </div>
+            <div>
+              <div class="counter" data-target="3">0</div>
+              <div class="muted small">Years experience</div>
+            </div>
+            <div>
+              <div class="counter" data-target="120">0</div>
+              <div class="muted small">Happy clients</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section" data-reveal>
+      <div class="section-head">
+        <h3>Contact</h3>
+        <div class="section-sub muted">Work inquiries & links</div>
+      </div>
+
+      <p class="muted" style="margin-top:12px">I'm available for short-term gigs and longer collaborations. Below are the best ways to reach me:</p>
+
+      <div style="margin-top:12px" class="socials">
+        <a class="social-btn social-pulse" href="https://www.youtube.com/channel/UCJFGLsnRXHIPd5jP6erMwNA" target="_blank">YouTube</a>
+        <a class="social-btn" href="https://discord.gg/yPVs8c86jR" target="_blank">Discord</a>
+        <a class="social-btn" href="https://t.me/ezmaxo" target="_blank">Telegram</a>
+        <a class="social-btn" href="mailto:ezmax0@gmail.com">Email</a>
+      </div>
+
+      <div style="margin-top:18px;color:var(--muted)">
+        <strong>Typical workflow:</strong>
+        <ol class="muted">
+          <li>Brief & objectives.</li>
+          <li>Concept / draft delivery.</li>
+          <li>Revisions (up to 2 rounds included).li>
+          <li>Final delivery & follow-up support.</li>
+        </ol>
+      </div>
+    </section>
+
+    <footer style="margin-top:36px" class="muted">© <strong>SKAZTHER</strong> — Sahil Khan • ezmax0@gmail.com</footer>
+  </main>
+
+  <script>
+    /* ---------- Animation Controller ---------- */
+    document.addEventListener('DOMContentLoaded', function() {
+      // First reveal the hero section
+      setTimeout(() => {
+        document.getElementById('hero').classList.add('reveal');
+      }, 200);
+      
+      // Then set up intersection observer for other sections
+      const sections = document.querySelectorAll('.section');
+      
+      const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal');
+            
+            // Stagger animations for child elements
+            const skillCards = entry.target.querySelectorAll('.skill-card');
+            const projects = entry.target.querySelectorAll('.project');
+            const chips = entry.target.querySelectorAll('.chip');
+            const pills = entry.target.querySelectorAll('.pill');
+            
+            if (skillCards.length > 0) {
+              skillCards.forEach((card, index) => {
+                setTimeout(() => card.classList.add('reveal'), index * 100);
+              });
+            }
+            
+            if (projects.length > 0) {
+              projects.forEach((project, index) => {
+                setTimeout(() => project.classList.add('reveal'), index * 120);
+              });
+            }
+            
+            if (chips.length > 0) {
+              chips.forEach((chip, index) => {
+                setTimeout(() => chip.classList.add('reveal'), index * 70);
+              });
+            }
+            
+            if (pills.length > 0) {
+              pills.forEach((pill, index) => {
+                setTimeout(() => pill.classList.add('reveal'), index * 30);
+              });
+            }
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      });
+
+      sections.forEach(section => {
+        sectionObserver.observe(section);
+      });
+    });
+
+    /* ---------- Mobile nav toggle ---------- */
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobileNav');
+    
+    hamburger.addEventListener('click', function() {
+      this.classList.toggle('open');
+      this.setAttribute('aria-expanded', this.classList.contains('open'));
+      mobileNav.classList.toggle('show');
+      
+      // Prevent scrolling when menu is open
+      document.body.style.overflow = this.classList.contains('open') ? 'hidden' : '';
+    });
+    
+    // Close mobile menu when clicking on links
+    mobileNav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', function() {
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileNav.classList.remove('show');
+        document.body.style.overflow = '';
+      });
+    });
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileNav.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // nebula parallax
+    const nebula = document.querySelector('.nebula');
+    window.addEventListener('scroll', ()=>{ const y = window.scrollY; nebula.style.transform = `translateY(${y*0.03}px)`; });
+
+    /* ---------- Counters ---------- */
+    const counters = document.querySelectorAll('.counter');
+    const counterObserver = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          const el = entry.target; const target = +el.getAttribute('data-target'); const duration = 1200; const start = performance.now();
+          function step(ts){
+            const progress = Math.min((ts-start)/duration,1);
+            el.textContent = Math.floor(progress * target);
+            if(progress<1) requestAnimationFrame(step); else el.textContent = target;
+          }
+          requestAnimationFrame(step);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, {threshold:0.3});
+    counters.forEach(c=>counterObserver.observe(c));
+
+    /* ---------- Smooth scroll with offset for fixed header ---------- */
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (!targetElement) return;
+        
+        // Calculate the scroll position with header height offset
+        const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 72;
+        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+        
+        // Smooth scroll to the target
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
+        
+        // Close mobile menu if open
+        if (hamburger.classList.contains('open')) {
+          hamburger.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+          mobileNav.classList.remove('show');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+
+    /* ---------- Resize handling ---------- */
+    function handleResize(){
+      if(window.innerWidth > 720){
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileNav.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+    }
+    window.addEventListener('resize', handleResize);
+
+    /* ---------- Extra tiny interactions: random shimmer on pills ---------- */
+    // Add staggered small animation timing to pills so they don't all animate together.
+    document.querySelectorAll('.pill').forEach((p,i)=>{
+      const t = 3.5 + (i % 6) * 0.35;
+      p.style.animationDuration = `${t}s`;
+    });
+
+    /* ---------- Accessibility: keyboard close mobile nav with Escape ---------- */
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape') {
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileNav.classList.remove('show');
+        document.body.style.overflow = '';
+      }
+    });
+  </script>
+</body>
+</html>
